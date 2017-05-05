@@ -543,3 +543,10 @@ Feature: webdav-related-new-endpoint
 		And user "user0" uploads new chunk file "3" with "CCCCC" to id "chunking-42"
 		When user "user0" moves new chunk file with id "chunking-42" to "/existingFile.txt"
 		Then User "user0" checks id of file "/existingFile.txt"
+
+	Scenario: Maintenance mode
+		Given using new dav path
+		And maintenance mode is enabled
+		When Connecting to dav endpoint
+ 		Then the HTTP status code should be "503"
+

@@ -486,3 +486,9 @@ Feature: webdav-related-old-endpoint
 		When As an "user0"
 		And Downloading file "/myChunkedFile.txt"
 		Then Downloaded content should be "AAAAABBBBBCCCCC"
+
+	Scenario: Maintenance mode
+		Given maintenance mode is enabled
+		When Connecting to dav endpoint
+ 		Then the HTTP status code should be "503"
+
