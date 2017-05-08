@@ -13,15 +13,15 @@ default:
               - admin
             regular_user_password: 123456
             mailhog_url: http://127.0.0.1:8025/api/v2/messages
+        - CommandLineContext:
+            baseUrl: http://localhost:8080
+            ocPath: ../../
         - TagsContext:
             baseUrl: http://localhost:8080
         - CardDavContext:
             baseUrl: http://localhost:8080
         - CalDavContext:
             baseUrl: http://localhost:8080
-        - CommandLineContext:
-            baseUrl: http://localhost:8080
-            ocPath: ../../
     federation:
       paths:
         - %paths.base%/../federation_features
