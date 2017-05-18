@@ -45,9 +45,30 @@ class OwncloudPage extends Page
 		}
 
 	}
-
-	public function getNotificationText() {
-		return $this->findById("notification")->getText();
+	
+	/**
+	 * 
+	 * @param string $xpath
+	 * @param int $timeout
+	 */
+	public function waitTillElementIsNull ($xpath, $timeout=10)
+	{
+		for ($counter = 0; $counter <= $timeout; $counter ++) {
+			$element = $this->find("xpath",$xpath);
+			if ($element === null) {
+				break;
+			}
+			sleep(1);
+		}
+	}
+	
+	public function getNotifications() {
+		$notificationsText=array();
+		$notifications=$this->findById("notification");
+		foreach ($notifications->findAll("xpath", "div") as $notification) {
+			array_push($notificationsText, $notification->getText());
+		}
+		return $notificationsText;
 	}
 
 	/**
