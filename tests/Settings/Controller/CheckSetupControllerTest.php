@@ -544,11 +544,6 @@ class CheckSetupControllerTest extends TestCase {
 			->with('has_internet_connection', true)
 			->will($this->returnValue(true));
 		$this->config
-			->expects($this->at(1))
-			->method('getSystemValue')
-			->with('appstoreenabled', $appStoreDefault)
-			->will($this->returnValue(false));
-		$this->config
 			->expects($this->at(2))
 			->method('getAppValue')
 			->with('files_sharing', 'outgoing_server2server_share_enabled', 'yes')
@@ -578,11 +573,6 @@ class CheckSetupControllerTest extends TestCase {
 			->method('getSystemValue')
 			->with('has_internet_connection', true)
 			->will($this->returnValue(true));
-		$this->config
-			->expects($this->at(1))
-			->method('getSystemValue')
-			->with('appstoreenabled', $appStoreDefault)
-			->will($this->returnValue(false));
 		$this->config
 			->expects($this->at(2))
 			->method('getAppValue')
