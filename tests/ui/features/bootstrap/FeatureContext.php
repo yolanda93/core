@@ -21,8 +21,9 @@
  */
 
 use Behat\Behat\Context\Context;
-use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\MinkExtension\Context\RawMinkContext;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope; 
+use Behat\Gherkin\Node\TableNode;
 use Page\OwncloudPage;
 use Page\LoginPage;
 
@@ -50,22 +51,10 @@ class FeatureContext extends RawMinkContext implements Context
 	public function aNotificationShouldBeDisplayedWithTheText($notificationText)
 	{
 		PHPUnit_Framework_Assert::assertEquals(
-			$notificationText, $this->owncloudPage->getNotificationText()
+			$notificationText, $this->owncloudPage->getNotifications()[0]
 		);
 	}
-
-	/**
-	 * @Then I should be redirected to a page with the title :title
-	 */
-	public function iShouldBeRedirectedToAPageWithTheTitle($title)
-	{
-		$this->waitForOutstandingAjaxCalls();
-		$actualTitle = $this->getSession()->getPage()->find(
-			'xpath', './/title'
-			)->getHtml();
-		PHPUnit_Framework_Assert::assertEquals($title, trim($actualTitle));
-	}
-
+	
 	/** @BeforeScenario */
 	public function setUpSuite(BeforeScenarioScope $scope)
 	{
@@ -80,4 +69,26 @@ class FeatureContext extends RawMinkContext implements Context
 		$sessionId = array_pop($parts);
 		return $sessionId;
 	}
-}
+
+	/**
+	 * @Then notifications should be displayed with the text
+	 */
+	public function notificationsShouldBeDisplayedWithTheText(TableNode $table)
+	{
+		$notifications = $this->owncloudPage->getNotifications();
+		$tableRows=$table->getRows();
+		PHPUnit_Framework_Assert::assertEquals(
+			count($tableRows),
+			count($notifications)
+		);
+		
+		$notificationCounter=0;
+		foreach ($tableRows as $row) {
+			PHPUnit_Framework_Assert::assertEquals(
+				$row[0],
+				$notifications[$notificationCounter]
+			);
+			$notificationCounter++;
+		}
+	}
+} 
