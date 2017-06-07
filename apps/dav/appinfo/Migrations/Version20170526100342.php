@@ -19,23 +19,24 @@
  *
  */
 
-namespace OCA\dav\Migrations;
+namespace OCA\DAV\Migrations;
 
-use OCA\DAV\CalDAV\BirthdayService;
-use OCP\IDBConnection;
-use OCP\Migration\ISqlMigration;
+use OCP\Migration\IOutput;
+use OCP\Migration\ISimpleMigration;
 
 /**
  * Fix the calendar components of the system contact birthday calendar
  */
-class Version20170526100342 implements ISqlMigration {
+class Version20170526100342 implements ISimpleMigration {
 
-	public function sql(IDBConnection $connection) {
-		$query = $connection->getQueryBuilder();
+	public function run(IOutput $out) {
+		$query = \OC::$server->getDatabaseConnection()->getQueryBuilder();
 		$updated = $query->update('calendars')
 			->set('components', $query->createNamedParameter('VEVENT'))
 			->set('calendarorder', $query->createNamedParameter('100'))
-			->where($query->expr()->eq('uri', $query->createNamedParameter(BirthdayService::BIRTHDAY_CALENDAR_URI)))
+			->where($query->expr()->eq(
+				'uri',
+				$query->createNamedParameter('contact_birthdays')))
 			->execute();
 	}
 }
