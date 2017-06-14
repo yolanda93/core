@@ -10,3 +10,9 @@ Feature: login
 		Given I am on the login page
 		When I login with username "admin" and password "admin"
 		Then I should be redirected to a page with the title "Files - ownCloud"
+
+	Scenario: access the personal general settings page when not logged in
+		Given a regular user exists
+		And I am on the personal general settings page
+		When I login with username "admin" and password "admin"
+		Then I should be redirected to a page with the title "Settings - ownCloud"
