@@ -83,9 +83,17 @@ class FeatureContext extends RawMinkContext implements Context
 	public function iShouldBeRedirectedToAPageWithTheTitle($title)
 	{
 		$this->owncloudPage->waitForOutstandingAjaxCalls($this->getSession());
-		$actualTitle = $this->getSession()->getPage()->find(
-			'xpath', './/title'
-			)->getHtml();
+		for ($counter = 0;$counter <= 5000;$counter += STANDARDSLEEPTIMEMILLISEC) {
+			$actualTitle = $this->getSession()->getPage()->find(
+				'xpath', './/title'
+				)->getHtml();
+
+			if ($title == trim($actualTitle)) {
+				break;
+			}
+
+			usleep(STANDARDSLEEPTIMEMICROSEC);
+		}
 		PHPUnit_Framework_Assert::assertEquals($title, trim($actualTitle));
 	}
 
