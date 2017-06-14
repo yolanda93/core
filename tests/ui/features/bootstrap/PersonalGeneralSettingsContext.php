@@ -52,7 +52,7 @@ class PersonalGeneralSettingsContext extends RawMinkContext implements Context
 	 */
 	public function iGoToThePersonalGeneralSettingsPage()
 	{
-		$this->visitPath($this->personalGeneralSettingsPage->getPath());
+		$this->visitPath($this->personalGeneralSettingsPage->getPagePath());
 	}
 	
 	/**

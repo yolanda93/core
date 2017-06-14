@@ -108,6 +108,10 @@ class OwncloudPage extends Page
 		return $this->findById($this->userNameDispayId)->getText();
 	}
 
+	public function getPagePath() {
+		return $this->getPath();
+	}
+
 	/**
 	 * Gets the Coordinates of a Mink Element
 	 *
