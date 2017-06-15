@@ -61,9 +61,9 @@ export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"browser_name": 
 
 if [ "$BROWSER" == "internet explorer" ]
 then
-	lib/composer/bin/behat -c $BEHAT_YML --tags '~@skipOnIE' $BEHAT_FEATURE -v
+	lib/composer/bin/behat -c $BEHAT_YML --tags '~@skip ~@skipOnIE' $BEHAT_FEATURE -v
 else
-	lib/composer/bin/behat -c $BEHAT_YML $BEHAT_FEATURE -v
+	lib/composer/bin/behat -c $BEHAT_YML --tags '~@skip' $BEHAT_FEATURE -v
 fi
 
 if [ $? -eq 0 ]
