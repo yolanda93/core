@@ -50,20 +50,7 @@ then
 	BEHAT_YML="tests/ui/config/behat.yml"
 fi
 
-if [ "$BEHAT_TAGS_OPTION_FOUND" = true ]
-then
-	if [ -z "$BEHAT_TAGS" ]
-	then
-		BEHAT_TAGS_PARAM=""
-		BEHAT_TAGS_PARAM_IE="--tags '~@skipOnIE'"
-	else
-		BEHAT_TAGS_PARAM="--tags '$BEHAT_TAGS'"
-		BEHAT_TAGS_PARAM_IE="--tags '$BEHAT_TAGS ~@skipOnIE'"
-	fi
-else
-	BEHAT_TAGS_PARAM="--tags '~@skip'"
-	BEHAT_TAGS_PARAM_IE="--tags '~@skip ~@skipOnIE'"
-fi
+echo $BEHAT_TAGS
 
 if [ "$SRV_HOST_PORT" == "80" ] || [ -z "$SRV_HOST_PORT" ]
 then
@@ -84,9 +71,29 @@ export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"browser_name": 
 
 if [ "$BROWSER" == "internet explorer" ]
 then
-	lib/composer/bin/behat -c $BEHAT_YML $BEHAT_TAGS_PARAM_IE $BEHAT_FEATURE -v
+	if [ "$BEHAT_TAGS_OPTION_FOUND" = true ]
+	then
+		if [ -z "$BEHAT_TAGS" ]
+		then
+			lib/composer/bin/behat -c $BEHAT_YML --tags '~@skipOnIE' $BEHAT_FEATURE -v
+		else
+			lib/composer/bin/behat -c $BEHAT_YML --tags "$BEHAT_TAGS&&~@skipOnIE" $BEHAT_FEATURE -v
+		fi
+	else
+		lib/composer/bin/behat -c $BEHAT_YML --tags '~@skip&&~@skipOnIE' $BEHAT_FEATURE -v
+	fi
 else
-	lib/composer/bin/behat -c $BEHAT_YML $BEHAT_TAGS_PARAM $BEHAT_FEATURE -v
+	if [ "$BEHAT_TAGS_OPTION_FOUND" = true ]
+	then
+		if [ -z "$BEHAT_TAGS" ]
+		then
+			lib/composer/bin/behat -c $BEHAT_YML $BEHAT_FEATURE -v
+		else
+			lib/composer/bin/behat -c $BEHAT_YML --tags "$BEHAT_TAGS" $BEHAT_FEATURE -v
+		fi
+	else
+		lib/composer/bin/behat -c $BEHAT_YML --tags '~@skip' $BEHAT_FEATURE -v
+	fi
 fi
 
 if [ $? -eq 0 ]
