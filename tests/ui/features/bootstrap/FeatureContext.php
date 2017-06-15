@@ -83,7 +83,10 @@ class FeatureContext extends RawMinkContext implements Context
 	public function iShouldBeRedirectedToAPageWithTheTitle($title)
 	{
 		$this->owncloudPage->waitForOutstandingAjaxCalls($this->getSession());
-		for ($counter = 0;$counter <= 5000;$counter += STANDARDSLEEPTIMEMILLISEC) {
+		$timeout_msec = 5000;
+		$currentTime = microtime(true);
+		$end = $currentTime + ($timeout_msec / 1000);
+		while ($currentTime <= $end) {
 			$actualTitle = $this->getSession()->getPage()->find(
 				'xpath', './/title'
 				)->getHtml();
@@ -93,6 +96,7 @@ class FeatureContext extends RawMinkContext implements Context
 			}
 
 			usleep(STANDARDSLEEPTIMEMICROSEC);
+			$currentTime = microtime(true);
 		}
 		PHPUnit_Framework_Assert::assertEquals($title, trim($actualTitle));
 	}
