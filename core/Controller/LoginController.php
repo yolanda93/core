@@ -165,6 +165,14 @@ class LoginController extends Controller {
 			$parameters['user_autofocus'] = true;
 		}
 
+		/**
+		 * If redirect_url is not null and remember_login is null then
+		 * user is trying to access files for which he needs to login.
+		 */
+		if (( $redirect_url !== null) and ($remember_login === null)) {
+			$parameters['accessLink'] = true;
+		}
+
 		return new TemplateResponse(
 			$this->appName, 'login', $parameters, 'guest'
 		);
