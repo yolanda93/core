@@ -4,9 +4,9 @@ use GuzzleHttp\Client as GClient;
 use GuzzleHttp\Message\ResponseInterface;
 use Sabre\DAV\Client as SClient;
 use Sabre\DAV\Xml\Property\ResourceType;
+use TestHelpers\WebDavHelper;
 
 require __DIR__ . '/../../../../lib/composer/autoload.php';
-
 
 trait WebDav {
 	use Sharing;
@@ -60,35 +60,16 @@ trait WebDav {
 								   $body = null,
 								   $type = "files",
 								   $requestBody = null){
-		if ( $type === "files" ){
-			$fullUrl = substr($this->baseUrl, 0, -4) . $this->getDavFilesPath($user) . "$path";
-		} else if ( $type === "uploads" ){
-			$fullUrl = substr($this->baseUrl, 0, -4) . $this->davPath . "$path";
-		} 
-		$client = new GClient();
-
-		$options = [];
-		if (!is_null($requestBody)){
-			$options['body'] = $requestBody;
-		}
-		if ($user === 'admin') {
-			$options['auth'] = $this->adminUser;
+		if ($this->usingOldDavPath === true) {
+			$davPathVersion = 1;
 		} else {
-			$options['auth'] = [$user, $this->regularUser];
+			$davPathVersion = 2;
 		}
-
-		$request = $client->createRequest($method, $fullUrl, $options);
-		if (!is_null($headers)){
-			foreach ($headers as $key => $value) {
-				$request->addHeader($key, $value);
-			}
-		}
-
-		if (!is_null($body)) {
-			$request->setBody($body);
-		}
-
-		return $client->send($request);
+		return WebDavHelper::makeDavRequest(
+			$this->baseUrlWithoutOCSAppendix,
+			$user, $this->getPasswordForUser($user), $method,
+			$path, $headers, $body, $requestBody, $davPathVersion
+		);
 	}
 
 	/**
@@ -98,7 +79,7 @@ trait WebDav {
 	 * @param string $fileDestination
 	 */
 	public function userMovedFile($user, $entry, $fileSource, $fileDestination){
-		$fullUrl = substr($this->baseUrl, 0, -4) . $this->getDavFilesPath($user);
+		$fullUrl = $this->baseUrlWithoutOCSAppendix . $this->getDavFilesPath($user);
 		$headers['Destination'] = $fullUrl . $fileDestination;
 		$this->response = $this->makeDavRequest($user, "MOVE", $fileSource, $headers);
 		PHPUnit_Framework_Assert::assertEquals(201, $this->response->getStatusCode());
@@ -111,7 +92,7 @@ trait WebDav {
 	 * @param string $fileDestination
 	 */
 	public function userMovesFile($user, $entry, $fileSource, $fileDestination){
-		$fullUrl = substr($this->baseUrl, 0, -4) . $this->getDavFilesPath($user);
+		$fullUrl = $this->baseUrlWithoutOCSAppendix . $this->getDavFilesPath($user);
 		$headers['Destination'] = $fullUrl . $fileDestination;
 		try {
 			$this->response = $this->makeDavRequest($user, "MOVE", $fileSource, $headers);
@@ -127,7 +108,7 @@ trait WebDav {
 	 * @param string $fileDestination
 	 */
 	public function userCopiesFile($user, $fileSource, $fileDestination){
-		$fullUrl = substr($this->baseUrl, 0, -4) . $this->getDavFilesPath($user);
+		$fullUrl = $this->baseUrlWithoutOCSAppendix . $this->getDavFilesPath($user);
 		$headers['Destination'] = $fullUrl . $fileDestination;
 		try {
 			$this->response = $this->makeDavRequest($user, "COPY", $fileSource, $headers);
@@ -152,7 +133,7 @@ trait WebDav {
 	 */
 	public function downloadPublicFileWithRange($range){
 		$token = $this->lastShareData->data->token;
-		$fullUrl = substr($this->baseUrl, 0, -4) . "public.php/webdav";
+		$fullUrl = $this->baseUrlWithoutOCSAppendix . "public.php/webdav";
 
 		$client = new GClient();
 		$options = [];
@@ -170,7 +151,7 @@ trait WebDav {
 	 */
 	public function downloadPublicFileInsideAFolderWithRange($path, $range){
 		$token = $this->lastShareData->data->token;
-		$fullUrl = substr($this->baseUrl, 0, -4) . "public.php/webdav" . "$path";
+		$fullUrl = $this->baseUrlWithoutOCSAppendix . "public.php/webdav" . "$path";
 
 		$client = new GClient();
 		$options = [];
@@ -526,21 +507,10 @@ trait WebDav {
 	}
 
 	public function getSabreClient($user) {
-		$fullUrl = substr($this->baseUrl, 0, -4);
-
-		$settings = [
-			'baseUri' => $fullUrl,
-			'userName' => $user,
-		];
-
-		if ($user === 'admin') {
-			$settings['password'] = $this->adminUser[1];
-		} else {
-			$settings['password'] = $this->regularUser;
-		}
-		$settings['authType'] = SClient::AUTH_BASIC;
-
-		return new SClient($settings);
+		return WebDavHelper::getSabreClient(
+			$this->baseUrlWithoutOCSAppendix,
+			$user,
+			$this->getPasswordForUser($user));
 	}
 
 	/**
@@ -741,7 +711,7 @@ trait WebDav {
 	public function userMovesNewChunkFileWithIdToMychunkedfile($user, $id, $dest)
 	{
 		$source = '/uploads/' . $user . '/' . $id . '/.file';
-		$destination = substr($this->baseUrl, 0, -4) . $this->getDavFilesPath($user) . $dest;
+		$destination = $this->baseUrlWithoutOCSAppendix . $this->getDavFilesPath($user) . $dest;
 		$this->makeDavRequest($user, 'MOVE', $source, [
 			'Destination' => $destination
 		], null, "uploads");
@@ -786,18 +756,12 @@ trait WebDav {
 
 	/*Set the elements of a proppatch, $folderDepth requires 1 to see elements without children*/
 	public function changeFavStateOfAnElement($user, $path, $favOrUnfav, $folderDepth, $properties = null){
-		$fullUrl = substr($this->baseUrl, 0, -4);
 		$settings = [
-			'baseUri' => $fullUrl,
+			'baseUri' => $this->baseUrlWithoutOCSAppendix,
 			'userName' => $user,
+			'password' => $this->getPasswordForUser($user),
+			'authType' => SClient::AUTH_BASIC
 		];
-		if ($user === 'admin') {
-			$settings['password'] = $this->adminUser[1];
-		} else {
-			$settings['password'] = $this->regularUser;
-		}
-		$settings['authType'] = SClient::AUTH_BASIC;
-
 		$client = new SClient($settings);
 		if (!$properties) {
 			$properties = [
